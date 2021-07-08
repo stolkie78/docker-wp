@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+  wordpress:
+    image: wordpress
+    secrets:
+      - dbpass
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wp
+      WORDPRESS_DB_PASSWORD: ${dbpass}
+      WORDPRESS_DB_NAME: wpdb
+    volumes:
+      - wordpress:/var/www/html
+  db:
+    image: mysql:5.7
+    secrets:
+      - dbpass
+    restart: always
+    environment:
+      MYSQL_DATABASE: wpdb
+      MYSQL_USER: wp
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db:/var/lib/mysql
+
+secrets:
+  dbpass:
+    file: /home/giedo/secrets/dbpass.txt
+volumes:
+  wordpress:
+  db:
+
