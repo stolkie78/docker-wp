@@ -9,6 +9,7 @@ services:
   wordpress:
     image: wordpress
     restart: always
+    volumes: /home/giedo/backup/${SITE}:/backup
     logging:
       options:
         max-size: "10m"
