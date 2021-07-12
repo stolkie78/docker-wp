@@ -1,38 +1,56 @@
-version: '3.5'
+version: '3'
+
+networks:
+  traefik:
+    external: true
+  backend:
+
 services:
   wordpress:
     image: wordpress
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`www.fourtyfit.nl`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
-    secrets:
-      - dbpass
     restart: always
-    ports:
-      - 8080:80
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wp
-      WORDPRESS_DB_PASSWORD: ${dbpass}
-      WORDPRESS_DB_NAME: wpdb
-    volumes:
-      - wordpress:/var/www/html
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${SITE}
+      WORDPRESS_DB_PASSWORD: ${SITE}
+      WORDPRESS_DB_NAME: ${SITE}
+    networks:
+      - traefik
+      - backend
+    depends_on:
+        - db
+    labels:
+      # The labels are usefull for Traefik only
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      # Get the routes from http
+      - "traefik.http.routers.wordpresscp.rule=Host(`${SITE}`)"
+      - "traefik.http.routers.wordpresscp.entrypoints=web"
+      # Redirect these routes to https
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.wordpresscp.middlewares=redirect-to-https@docker"
+      # Get the routes from https
+      - "traefik.http.routers.wordpresscp-secured.rule=Host(`${SITE}`)"
+      - "traefik.http.routers.wordpresscp-secured.entrypoints=web-secure"
+      # Apply autentificiation with http challenge
+      - "traefik.http.routers.wordpresscp-secured.tls=true"
+      - "traefik.http.routers.wordpresscp-secured.tls.certresolver=myhttpchallenge"
+
   db:
     image: mysql:5.7
-    secrets:
-      - dbpass
     restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
-      MYSQL_DATABASE: wpdb
-      MYSQL_USER: wp
-      MYSQL_PASSWORD: ${dbpass}
+      MYSQL_DATABASE: ${SITE}
+      MYSQL_USER: ${SITE}
+      MYSQL_PASSWORD: ${SITE}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - db:/var/lib/mysql
-secrets:
-  dbpass:
-    file: /home/giedo/secrets/dbpass.txt
-volumes:
-  wordpress:
-  db:
+    networks:
+      - backend
