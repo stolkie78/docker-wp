@@ -1,10 +1,8 @@
 version: '3'
-
 networks:
   traefik:
     external: true
   backend:
-
 services:
   wordpress:
     image: wordpress
@@ -18,7 +16,7 @@ services:
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: ${SITE}
-      WORDPRESS_DB_PASSWORD: ${SITE}
+      WORDPRESS_DB_PASSWORD: ${SITE}${SHORT}
       WORDPRESS_DB_NAME: ${SITE}
     networks:
       - traefik
@@ -30,18 +28,17 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
       # Get the routes from http
-      - "traefik.http.routers.wordpresscp.rule=Host(`${SITE}`)"
-      - "traefik.http.routers.wordpresscp.entrypoints=web"
+      - "traefik.http.routers.${SHORT}.rule=Host(`${SITE}`)"
+      - "traefik.http.routers.${SHORT}.entrypoints=web"
       # Redirect these routes to https
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.wordpresscp.middlewares=redirect-to-https@docker"
+      - "traefik.http.routers.${SHORT}.middlewares=redirect-to-https@docker"
       # Get the routes from https
-      - "traefik.http.routers.wordpresscp-secured.rule=Host(`${SITE}`)"
-      - "traefik.http.routers.wordpresscp-secured.entrypoints=web-secure"
+      - "traefik.http.routers.${SHORT}-secured.rule=Host(`${SITE}`)"
+      - "traefik.http.routers.${SHORT}-secured.entrypoints=web-secure"
       # Apply autentificiation with http challenge
-      - "traefik.http.routers.wordpresscp-secured.tls=true"
-      - "traefik.http.routers.wordpresscp-secured.tls.certresolver=myhttpchallenge"
-
+      - "traefik.http.routers.${SHORT}-secured.tls=true"
+      - "traefik.http.routers.${SHORT}-secured.tls.certresolver=myhttpchallenge"
   db:
     image: mysql:5.7
     restart: always
@@ -52,7 +49,7 @@ services:
     environment:
       MYSQL_DATABASE: ${SITE}
       MYSQL_USER: ${SITE}
-      MYSQL_PASSWORD: ${SITE}
+      MYSQL_PASSWORD: ${SITE}${SHORT}
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     networks:
       - backend
