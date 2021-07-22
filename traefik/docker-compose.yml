@@ -1,10 +1,9 @@
-version: "3.3"
+version: "3.7"
 
 networks:
     # Allow the use of traefik in other docker-compose.yml files
     traefik:
         external: true
-
 services:
   traefik:
     image: "traefik:v2.4"

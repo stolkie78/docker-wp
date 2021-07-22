@@ -1,10 +1,8 @@
-version: '3'
-
+version: '3.7'
 networks:
   traefik:
     external: true
   backend:
-
 services:
   wordpress:
     image: wordpress
@@ -41,7 +39,6 @@ services:
       # Apply autentificiation with http challenge
       - "traefik.http.routers.${SHORT}-secured.tls=true"
       - "traefik.http.routers.${SHORT}-secured.tls.certresolver=myhttpchallenge"
-
   db:
     image: mysql:5.7
     restart: always
